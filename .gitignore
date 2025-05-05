@@ -1,0 +1,4 @@
+ # Ignore files named 'install' and 'run'
+*/*.bat
+*/*.db
+db.sqlite3

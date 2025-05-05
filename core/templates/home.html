@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      @font-face {
+        font-family: "Script1";
+        src: url("/media/font/script1-script-casual-normal.ttf")
+          format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      #better {
+        font-family: "Script1" !important;
+      }
+
+      /* Page Styles */
+      body {
+        max-width: 28em;
+        margin: 0 auto;
+        background-color: rgb(175, 192, 198);
+      }
+
+      .background {
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .clipboard {
+        border: 0;
+        padding: 15px;
+        border-radius: 3px;
+        background-image: linear-gradient(135deg, #fdeb71 10%, #f8d800 100%);
+        cursor: pointer;
+        color: #04048c;
+        font-family: "Karla", sans-serif;
+        font-size: 16px;
+        position: relative;
+        transition: all 0.2s ease;
+      }
+
+      .clipboard:hover {
+        top: 2px;
+      }
+
+      .card {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- FilePond Styles -->
+    <link
+      href="https://unpkg.com/filepond/dist/filepond.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css"
+      rel="stylesheet"
+    />
+
+    <!-- Header -->
+    <div class="text-center">
+      <img
+        src="/media/image/download.png"
+        class="img-fluid img-responsive mt-4"
+        style="height: 200px"
+      />
+      <h2 id="better">Better Store File</h2>
+    </div>
+
+    <!-- File Upload -->
+    <input type="file" class="my-pond mt-4" multiple name="filepond" />
+    <span>password:</span>
+    <input class="input" type="password" id="pass" data-info="secret" />
+
+    <div class="text-center">
+      <button class="btn btn-success" onclick="upload_file()">
+        Upload File
+      </button>
+    </div>
+
+    <hr />
+    <div class="container">
+      <div class="row justify-content-md-center">
+        <div class="col-md-auto">
+          <p id="link-container"></p>
+          <button id="btn" class="btn btn-primary" onclick="copyToClipboard()">
+            Copy Link File
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+    <div class="d-grid gap-2">
+      <a href="{% url 'logout' %}" class="btn btn-danger btn-lg btn-block"
+        >Logout</a
+      >
+    </div>
+
+    <!-- FilePond Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.30.3/filepond.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    <script src="https://unpkg.com/jquery-filepond/filepond.jquery.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+
+    <script>
+      FilePond.registerPlugin(FilePondPluginImagePreview);
+      const pond = FilePond.create(document.querySelector(".my-pond"));
+
+      var url = null;
+
+      function upload_file() {
+        var files = pond.getFiles();
+        var formdata = new FormData();
+
+        for (var i = 0; i < files.length; i++) {
+          formdata.append("files", files[i].file);
+        }
+
+        let password = document.getElementById("pass").value;
+        if (password === "") {
+          // Check if the input field is empty
+          document.getElementById("pass").value = "1"; // Set the default value to "1"
+          password = "1"; // Update the variable to reflect the change
+        }
+
+        formdata.append("password", password);
+        fetch("/handle/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{csrf_token}}",
+          },
+          body: formdata,
+        })
+          .then((res) => res.json())
+          .then((result) => {
+            console.log(result); // Fixed typo
+
+            url = `http://127.0.0.1:8000/download/${result.data.folder}`;
+
+            document.getElementById("btn").style.display = "block"; // Fixed display issue
+            document.getElementById(
+              "link-container"
+            ).innerHTML = `Upload successful! Click <a href="${url}" target="_blank">here</a> to download.`;
+          })
+          .catch((err) => console.error("Error uploading:", err));
+      }
+    </script>
+  </body>
+</html>
